@@ -23,7 +23,7 @@
             android:marqueeRepeatLimit="marquee_forever"
             android:padding="10dp"
             android:singleLine="true"
-            android:text="Song name"
+            android:text="@string/song_name"
             android:textColor="#FFF"
             android:textSize="22sp"
             android:textAlignment="center"
@@ -95,7 +95,7 @@
             <Button
                 android:id="@+id/playbtn"
                 android:layout_centerHorizontal="true"
-                android:background="@drawable/ic_play"
+                android:background="@drawable/ic_pause"
                 android:layout_width="70dp"
                 android:layout_height="70dp"
                 />
@@ -118,6 +118,15 @@
                 android:layout_height="50dp"
                 />
 
+            <ImageView
+                android:id="@+id/repeatbtn"
+                android:layout_toRightOf="@id/nextbtn"
+                android:layout_marginTop="25dp"
+                android:layout_marginLeft="50dp"
+                android:background="@drawable/repeatbtn"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                />
         </RelativeLayout>
 
     </LinearLayout>
@@ -142,19 +151,19 @@
             <Button
                 android:id="@+id/lowbtn"
                 android:layout_toLeftOf="@id/volumnbar"
-                android:layout_marginTop="15dp"
+                android:layout_marginTop="25dp"
                 android:background="@drawable/ic_volume_down"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
                 />
 
             <Button
                 android:id="@+id/upbtn"
                 android:layout_toRightOf="@id/volumnbar"
-                android:layout_marginTop="15dp"
-                android:background="@drawable/ic_volume_down"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+                android:layout_marginTop="25dp"
+                android:background="@drawable/ic_volume_up"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
                 />
 
         </RelativeLayout>
