@@ -121,6 +121,7 @@ public class PlayerActivity extends AppCompatActivity {
             }
         });
 
+        //---------previous btn-----------------------
         btnprev.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -134,6 +135,7 @@ public class PlayerActivity extends AppCompatActivity {
             }
         });
 
+        //------------repeat btn----------------------
         btnrep.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -151,7 +153,6 @@ public class PlayerActivity extends AppCompatActivity {
 
     }
 
-    @SuppressLint("HandlerLeak")
     private void initPlayer(int position) {
         if (mediaPlayer != null && mediaPlayer.isPlaying()){
             mediaPlayer.reset();
