@@ -40,11 +40,14 @@ public class PlayerActivity extends AppCompatActivity {
     TextView txtsname, txtstart, txtstop;
     SeekBar seekmusic;
     String sname;
+    ImageView imageView;
 
     public static final String EXTRA_NAME = "song_name";
     static MediaPlayer mediaPlayer;
     int position;
     ArrayList<File> mysongs;
+
+    Thread updateseekbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +64,8 @@ public class PlayerActivity extends AppCompatActivity {
 
         seekmusic = findViewById(R.id.seekbar);
 
+        imageView = findViewById(R.id.imageview);
+
         if (mediaPlayer != null){
             mediaPlayer.stop();
             mediaPlayer.release();
@@ -74,12 +79,73 @@ public class PlayerActivity extends AppCompatActivity {
         position = bundle.getInt("pos", 0);
         txtsname.setSelected(true);
         Uri uri = Uri.parse(mysongs.get(position).toString());
-        sname = mysongs.get(position).getName().toString().replace(".mp3", "");
+        sname = mysongs.get(position).getName().replace(".mp3", "");
         txtsname.setText(sname);
 
         mediaPlayer = MediaPlayer.create(getApplicationContext(), uri);
         mediaPlayer.start();
 
+        updateseekbar = new Thread(){
+            @Override
+            public void run() {
+                int totalDuration = mediaPlayer.getDuration();
+                int currentPosition = 0;
+
+                while (currentPosition < totalDuration){
+                    try {
+                        sleep(500);
+                        currentPosition = mediaPlayer.getCurrentPosition();
+                        seekmusic.setProgress(currentPosition);
+                    } catch (InterruptedException | IllegalStateException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        };
+
+        seekmusic.setMax(mediaPlayer.getDuration());
+        updateseekbar.start();
+        seekmusic.getProgressDrawable().setColorFilter(getResources().getColor(R.color.black), PorterDuff.Mode.MULTIPLY);
+        seekmusic.getThumb().setColorFilter(getResources().getColor(R.color.colorPrimary), PorterDuff.Mode.SRC_IN);
+
+        seekmusic.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (fromUser){
+                    mediaPlayer.seekTo(progress);
+                    seekBar.setProgress(progress);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+//                mediaPlayer.seekTo(seekBar.getProgress());
+            }
+        });
+
+        //-----------create totalTime--------------------
+        String endTime = createTime(mediaPlayer.getDuration());
+        txtstop.setText(endTime);
+
+        //----------create currentTime---------------------
+        final Handler handler = new Handler();
+        final int delay = 1000;
+
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                String currentTime = createTime(mediaPlayer.getCurrentPosition());
+                txtstart.setText(currentTime);
+                handler.postDelayed(this, delay);
+            }
+        }, delay);
+
+        //---------play btn-------------------
         btnplay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -94,6 +160,71 @@ public class PlayerActivity extends AppCompatActivity {
             }
         });
 
+        //-------next listener--------
+        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                btnnext.performClick();
+            }
+        });
+
+        btnnext.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mediaPlayer.stop();
+                mediaPlayer.release();
+                position = ((position + 1) % mysongs.size());
+                Uri u = Uri.parse(mysongs.get(position).toString());
+                mediaPlayer = MediaPlayer.create(getApplicationContext(), u);
+
+                sname = mysongs.get(position).getName().replace(".mp3", "");;
+                txtsname.setText(sname);
+
+                mediaPlayer.start();
+                btnplay.setBackgroundResource(R.drawable.ic_pause);
+                startAnimation(imageView);
+            }
+        });
+
+        btnprev.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mediaPlayer.stop();
+                mediaPlayer.release();
+                position = ((position - 1) < 0) ? (mysongs.size() - 1):(position - 1);
+                Uri u = Uri.parse(mysongs.get(position).toString());
+                mediaPlayer = MediaPlayer.create(getApplicationContext(), u);
+
+                sname = mysongs.get(position).getName().replace(".mp3", "");;
+                txtsname.setText(sname);
+
+                mediaPlayer.start();
+                btnplay.setBackgroundResource(R.drawable.ic_pause);
+                startAnimation(imageView);
+            }
+        });
+
     }
 
+    public void startAnimation (View view){
+        ObjectAnimator animator = ObjectAnimator.ofFloat(imageView, "rotation", 0f, 360f);
+        //set for one sec
+        animator.setDuration(1000);
+        AnimatorSet animatorSet = new AnimatorSet();
+        animatorSet.playTogether(animator);
+        animatorSet.start();
+    }
+
+    public String createTime (int duration) {
+        String time = "";
+        int min = duration / 1000 / 60;
+        int sec = duration / 1000 % 60;
+
+        time += min + ":";
+
+        if (sec < 10) time += "0";
+
+        time += sec;
+        return  time;
+    }
 }
