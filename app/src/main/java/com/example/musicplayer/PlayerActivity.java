@@ -7,6 +7,7 @@ import androidx.core.content.res.ResourcesCompat;
 import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -20,8 +21,10 @@ import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.net.wifi.aware.DiscoverySession;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -40,23 +43,37 @@ public class PlayerActivity extends AppCompatActivity {
     TextView txtsname, txtstart, txtstop;
     SeekBar seekmusic;
     String sname;
-    ImageView imageView;
+    ImageView imageView, btnrep;
 
     public static final String EXTRA_NAME = "song_name";
     static MediaPlayer mediaPlayer;
     int position;
+    boolean repeat;
     ArrayList<File> mysongs;
 
     Thread updateseekbar;
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        //set back to home button
+        if (item.getItemId() == android.R.id.home) {onBackPressed();}
+        return super.onOptionsItemSelected(item);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_player);
 
+        //back home button on top bar
+        getSupportActionBar().setTitle("Now Playing");
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+
         btnprev = findViewById(R.id.prevbtn);
         btnnext = findViewById(R.id.nextbtn);
         btnplay = findViewById(R.id.playbtn);
+        btnrep = findViewById(R.id.repeatbtn);
 
         txtsname = findViewById(R.id.nametxt);
         txtstart = findViewById(R.id.txtstart);
@@ -66,6 +83,7 @@ public class PlayerActivity extends AppCompatActivity {
 
         imageView = findViewById(R.id.imageview);
 
+        //checking if media player is null or not
         if (mediaPlayer != null){
             mediaPlayer.stop();
             mediaPlayer.release();
@@ -75,45 +93,127 @@ public class PlayerActivity extends AppCompatActivity {
         Bundle bundle = i.getExtras();
 
         mysongs = (ArrayList) bundle.getParcelableArrayList("songs");
-        String songName = i.getStringExtra("songname");
+//        String songName = i.getStringExtra("songname");
         position = bundle.getInt("pos", 0);
-        txtsname.setSelected(true);
-        Uri uri = Uri.parse(mysongs.get(position).toString());
+
+        initPlayer(position);
+
+        //---------play btn-------------------
+        btnplay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //when play pause button is clicked
+                play();
+            }
+        });
+
+        //---------next btn---------------------
+        btnnext.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (position < mysongs.size() - 1) {
+                    position++;
+                } else {
+                    position = 0;
+
+                }
+                initPlayer(position);
+            }
+        });
+
+        btnprev.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (position <= 0) {
+                    position = mysongs.size() - 1;
+                } else {
+                    position--;
+
+                }
+                initPlayer(position);
+            }
+        });
+
+        btnrep.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                repeat = !repeat;
+                mediaPlayer.setLooping(repeat);
+                if (repeat){
+                    btnrep.setBackgroundResource(R.drawable.repeatbtn_click);
+                }
+                else {
+                    btnrep.setBackgroundResource(R.drawable.repeatbtn);
+                }
+
+            }
+        });
+
+    }
+
+    @SuppressLint("HandlerLeak")
+    private void initPlayer(int position) {
+        if (mediaPlayer != null && mediaPlayer.isPlaying()){
+            mediaPlayer.reset();
+        }
+
         sname = mysongs.get(position).getName().replace(".mp3", "");
         txtsname.setText(sname);
 
+        Uri uri = Uri.parse(mysongs.get(position).toString());
+
         mediaPlayer = MediaPlayer.create(getApplicationContext(), uri);
-        mediaPlayer.start();
-
-        updateseekbar = new Thread(){
+        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
-            public void run() {
-                int totalDuration = mediaPlayer.getDuration();
-                int currentPosition = 0;
+            public void onPrepared(MediaPlayer mp) {
 
-                while (currentPosition < totalDuration){
-                    try {
-                        sleep(500);
-                        currentPosition = mediaPlayer.getCurrentPosition();
-                        seekmusic.setProgress(currentPosition);
-                    } catch (InterruptedException | IllegalStateException e) {
-                        e.printStackTrace();
-                    }
-                }
+                //set total time
+                String totalTime = createTime(mediaPlayer.getDuration());
+                txtstop.setText(totalTime);
+
+                //set seekbar maximum duration
+                seekmusic.setMax(mediaPlayer.getDuration());
+
+                //start the music player
+                mediaPlayer.start();
+
+                //set 1000 to pause
+                btnplay.setBackgroundResource(R.drawable.ic_pause);
+
+                //start animation
+                startAnimation(imageView);
             }
-        };
+        });
 
-        seekmusic.setMax(mediaPlayer.getDuration());
-        updateseekbar.start();
-        seekmusic.getProgressDrawable().setColorFilter(getResources().getColor(R.color.black), PorterDuff.Mode.MULTIPLY);
-        seekmusic.getThumb().setColorFilter(getResources().getColor(R.color.colorPrimary), PorterDuff.Mode.SRC_IN);
+        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
 
+                int curPosition = position;
+
+                if (curPosition < mysongs.size() - 1) {
+                    curPosition++;
+                    initPlayer(curPosition);
+                } else {
+                    curPosition = 0;
+                    initPlayer(curPosition);
+                }
+                //do something when the song is finished playing
+                //for now we will just change the pause icon to play icon
+
+                btnplay.setBackgroundResource(R.drawable.ic_play);
+            }
+        });
+
+        //setting up seekbar
         seekmusic.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                // do something when the seekbar is changed
+
                 if (fromUser){
-                    mediaPlayer.seekTo(progress);
-                    seekBar.setProgress(progress);
+                    mediaPlayer.seekTo(progress); // seek the song
+                    seekBar.setProgress(progress); //set the seekbar progress
                 }
             }
 
@@ -124,87 +224,47 @@ public class PlayerActivity extends AppCompatActivity {
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-//                mediaPlayer.seekTo(seekBar.getProgress());
+
             }
         });
 
-        //-----------create totalTime--------------------
-        String endTime = createTime(mediaPlayer.getDuration());
-        txtstop.setText(endTime);
+        //set seekbar color
+        seekmusic.getProgressDrawable().setColorFilter(getResources().getColor(R.color.black), PorterDuff.Mode.MULTIPLY);
+        seekmusic.getThumb().setColorFilter(getResources().getColor(R.color.colorPrimary), PorterDuff.Mode.SRC_IN);
 
-        //----------create currentTime---------------------
-        final Handler handler = new Handler();
-        final int delay = 1000;
-
-        handler.postDelayed(new Runnable() {
+        //setup seekbar to change with songs duration
+        new Thread(new Runnable() {
             @Override
             public void run() {
-                String currentTime = createTime(mediaPlayer.getCurrentPosition());
-                txtstart.setText(currentTime);
-                handler.postDelayed(this, delay);
-            }
-        }, delay);
-
-        //---------play btn-------------------
-        btnplay.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mediaPlayer.isPlaying()){
-                    btnplay.setBackgroundResource(R.drawable.ic_play);
-                    mediaPlayer.pause();
-                }
-                else {
-                    btnplay.setBackgroundResource(R.drawable.ic_pause);
-                    mediaPlayer.start();
+                while (mediaPlayer != null) {
+                    try {
+                        if (mediaPlayer.isPlaying()){
+                            Message message = new Message();
+                            message.what = mediaPlayer.getCurrentPosition();
+                            handler.sendMessage(message);
+                            Thread.sleep(1000);
+                        }
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
-        });
-
-        //-------next listener--------
-        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mp) {
-                btnnext.performClick();
-            }
-        });
-
-        btnnext.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mediaPlayer.stop();
-                mediaPlayer.release();
-                position = ((position + 1) % mysongs.size());
-                Uri u = Uri.parse(mysongs.get(position).toString());
-                mediaPlayer = MediaPlayer.create(getApplicationContext(), u);
-
-                sname = mysongs.get(position).getName().replace(".mp3", "");;
-                txtsname.setText(sname);
-
-                mediaPlayer.start();
-                btnplay.setBackgroundResource(R.drawable.ic_pause);
-                startAnimation(imageView);
-            }
-        });
-
-        btnprev.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mediaPlayer.stop();
-                mediaPlayer.release();
-                position = ((position - 1) < 0) ? (mysongs.size() - 1):(position - 1);
-                Uri u = Uri.parse(mysongs.get(position).toString());
-                mediaPlayer = MediaPlayer.create(getApplicationContext(), u);
-
-                sname = mysongs.get(position).getName().replace(".mp3", "");;
-                txtsname.setText(sname);
-
-                mediaPlayer.start();
-                btnplay.setBackgroundResource(R.drawable.ic_pause);
-                startAnimation(imageView);
-            }
-        });
+        }).start();
 
     }
+
+    //create handler to set progress
+    @SuppressLint("HandlerLeak")
+    private Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            int curPos = msg.what;
+            seekmusic.setProgress(curPos);
+            String curTime = createTime(curPos);
+            txtstart.setText(curTime);
+        }
+    };
+
 
     public void startAnimation (View view){
         ObjectAnimator animator = ObjectAnimator.ofFloat(imageView, "rotation", 0f, 360f);
@@ -227,4 +287,22 @@ public class PlayerActivity extends AppCompatActivity {
         time += sec;
         return  time;
     }
+
+    private void play() {
+        if (mediaPlayer != null && mediaPlayer.isPlaying()){
+            mediaPlayer.pause();
+            btnplay.setBackgroundResource(R.drawable.ic_play);
+        }
+        else {
+            mediaPlayer.start();
+            btnplay.setBackgroundResource(R.drawable.ic_pause);
+        }
+    }
+
+    private void repeatSong() {
+        repeat = !repeat;
+        mediaPlayer.setLooping(repeat);
+
+    }
+
 }
