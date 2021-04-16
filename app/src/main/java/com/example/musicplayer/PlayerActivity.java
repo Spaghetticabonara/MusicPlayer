@@ -19,6 +19,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.net.wifi.aware.DiscoverySession;
@@ -41,7 +42,7 @@ public class PlayerActivity extends AppCompatActivity {
 
     Button btnplay, btnnext, btnprev;
     TextView txtsname, txtstart, txtstop;
-    SeekBar seekmusic;
+    SeekBar seekmusic, volumebar;
     String sname;
     ImageView imageView, btnrep;
 
@@ -50,6 +51,7 @@ public class PlayerActivity extends AppCompatActivity {
     int position;
     boolean repeat;
     ArrayList<File> mysongs;
+    AudioManager audioManager;
 
     Thread updateseekbar;
 
@@ -80,6 +82,7 @@ public class PlayerActivity extends AppCompatActivity {
         txtstop = findViewById(R.id.txtend);
 
         seekmusic = findViewById(R.id.seekbar);
+        volumebar = findViewById(R.id.volumnbar);
 
         imageView = findViewById(R.id.imageview);
 
@@ -89,6 +92,37 @@ public class PlayerActivity extends AppCompatActivity {
             mediaPlayer.release();
         }
 
+        //set volume bar
+        audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+
+        //get max volume
+        int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+
+        //get current volume
+        int curVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+
+        volumebar.setMax(maxVolume);
+        volumebar.setProgress(curVolume);
+        volumebar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                //we just want to set the volume so we just put a zero there: youtube said
+                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, progress, 0);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+
+        //get songs from phone
         Intent i = getIntent();
         Bundle bundle = i.getExtras();
 
@@ -298,12 +332,6 @@ public class PlayerActivity extends AppCompatActivity {
             mediaPlayer.start();
             btnplay.setBackgroundResource(R.drawable.ic_pause);
         }
-    }
-
-    private void repeatSong() {
-        repeat = !repeat;
-        mediaPlayer.setLooping(repeat);
-
     }
 
 }
