@@ -47,7 +47,7 @@ public class PlayerActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         //set back to home button
-        if (item.getItemId() == android.R.id.home) { onBackPressed(); }
+        if (item.getItemId() == android.R.id.home) {onBackPressed();}
         return super.onOptionsItemSelected(item);
     }
 
@@ -203,7 +203,6 @@ public class PlayerActivity extends AppCompatActivity {
             mediaPlayer.reset();
         }
 
-        txtsname.setSelected(true);
         sname = mysongs.get(position).getName().replace(".mp3", "");
         txtsname.setText(sname);
 
@@ -242,7 +241,7 @@ public class PlayerActivity extends AppCompatActivity {
 
                 if (curPosition < mysongs.size() - 1 && shuffle) {
                     initPlayer(getShuffle(mysongs.size() - 1));
-
+                    
                 } else if (curPosition < mysongs.size() - 1 && !shuffle){
                     curPosition++;
                     initPlayer(curPosition);
