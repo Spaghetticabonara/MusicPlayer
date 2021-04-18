@@ -150,11 +150,13 @@ public class PlayerActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (position < mysongs.size() - 1 && shuffle) {
                     position = getShuffle(mysongs.size() - 1);
+
+
+                } else if (position < mysongs.size() - 1 && !shuffle){
                     position++;
 
-                } else {
+                }else {
                     position = 0;
-
                 }
                 initPlayer(position);
             }
@@ -167,9 +169,11 @@ public class PlayerActivity extends AppCompatActivity {
                 if (position <= 0 && shuffle) {
                     position = getShuffle(mysongs.size() - 1);
 //                    position = mysongs.size() - 1;
-                } else {
-                    position--;
+                } else if (position <= 0 && !shuffle){
+                    position = mysongs.size() - 1;
 
+                }else {
+                    position--;
                 }
                 initPlayer(position);
             }
@@ -249,7 +253,7 @@ public class PlayerActivity extends AppCompatActivity {
 
                 int curPosition = position;
 
-                if (curPosition < mysongs.size() - 1 && repeat) {
+                if (curPosition < mysongs.size() - 1) {
                     curPosition++;
                     initPlayer(curPosition);
                 } else {
