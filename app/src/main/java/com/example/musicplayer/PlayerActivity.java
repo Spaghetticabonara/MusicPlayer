@@ -47,7 +47,7 @@ public class PlayerActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         //set back to home button
-        if (item.getItemId() == android.R.id.home) {onBackPressed();}
+        if (item.getItemId() == android.R.id.home) { onBackPressed(); }
         return super.onOptionsItemSelected(item);
     }
 
@@ -203,6 +203,7 @@ public class PlayerActivity extends AppCompatActivity {
             mediaPlayer.reset();
         }
 
+        txtsname.setSelected(true);
         sname = mysongs.get(position).getName().replace(".mp3", "");
         txtsname.setText(sname);
 

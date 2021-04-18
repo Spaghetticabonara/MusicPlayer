@@ -85,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
 
         for (int i = 0; i < mySongs.size(); i++){
 
-            items[i] = mySongs.get(i).getName().toString().replace(".mp3", "");
+            items[i] = mySongs.get(i).getName().replace(".mp3", "");
         }
 
 //        ArrayAdapter<String> myAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, items);
@@ -94,15 +94,12 @@ public class MainActivity extends AppCompatActivity {
         customAdapter customAdapter = new customAdapter();
         listView.setAdapter(customAdapter);
 
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String songName = (String) listView.getItemAtPosition(position);
-                startActivity(new Intent(getApplicationContext(), PlayerActivity.class)
-                .putExtra("songs", mySongs)
-                .putExtra("songname", songName)
-                .putExtra("pos", position));
-            }
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            String songName = (String) listView.getItemAtPosition(position);
+            startActivity(new Intent(getApplicationContext(), PlayerActivity.class)
+            .putExtra("songs", mySongs)
+            .putExtra("songname", songName)
+            .putExtra("pos", position));
         });
     }
 
