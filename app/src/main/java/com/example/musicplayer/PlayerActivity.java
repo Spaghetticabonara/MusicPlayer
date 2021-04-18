@@ -44,12 +44,13 @@ public class PlayerActivity extends AppCompatActivity {
     TextView txtsname, txtstart, txtstop;
     SeekBar seekmusic, volumebar;
     String sname;
-    ImageView imageView, btnrep;
+    ImageView imageView, btnrep, btnshuffle;
 
     public static final String EXTRA_NAME = "song_name";
     static MediaPlayer mediaPlayer;
     int position;
-    boolean repeat;
+    boolean repeat = false;
+    boolean shuffle = false;
     ArrayList<File> mysongs;
     AudioManager audioManager;
 
@@ -76,6 +77,7 @@ public class PlayerActivity extends AppCompatActivity {
         btnnext = findViewById(R.id.nextbtn);
         btnplay = findViewById(R.id.playbtn);
         btnrep = findViewById(R.id.repeatbtn);
+        btnshuffle = findViewById(R.id.shufflebtn);
 
         txtsname = findViewById(R.id.nametxt);
         txtstart = findViewById(R.id.txtstart);
@@ -174,14 +176,15 @@ public class PlayerActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 repeat = !repeat;
-                mediaPlayer.setLooping(repeat);
+//                mediaPlayer.setLooping(repeat);
+
                 if (repeat){
                     btnrep.setBackgroundResource(R.drawable.repeatbtn_click);
                 }
                 else {
                     btnrep.setBackgroundResource(R.drawable.repeatbtn);
                 }
-
+                initPlayer(position);
             }
         });
 
@@ -208,6 +211,8 @@ public class PlayerActivity extends AppCompatActivity {
 
                 //set seekbar maximum duration
                 seekmusic.setMax(mediaPlayer.getDuration());
+
+                mediaPlayer.setLooping(repeat);
 
                 //start the music player
                 mediaPlayer.start();
