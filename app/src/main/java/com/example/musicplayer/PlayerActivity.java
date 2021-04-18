@@ -2,38 +2,25 @@ package com.example.musicplayer;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.res.ResourcesCompat;
 
-import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.BlurMaskFilter;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.PorterDuff;
-import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
-import android.net.wifi.aware.DiscoverySession;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toolbar;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -184,7 +171,7 @@ public class PlayerActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 repeat = !repeat;
-//                mediaPlayer.setLooping(repeat);
+                mediaPlayer.setLooping(repeat);
 
                 if (repeat){
                     btnrep.setBackgroundResource(R.drawable.repeatbtn_click);
@@ -192,7 +179,6 @@ public class PlayerActivity extends AppCompatActivity {
                 else {
                     btnrep.setBackgroundResource(R.drawable.repeatbtn);
                 }
-                initPlayer(position);
             }
         });
 
@@ -253,11 +239,19 @@ public class PlayerActivity extends AppCompatActivity {
 
                 int curPosition = position;
 
-                if (curPosition < mysongs.size() - 1) {
+                if (curPosition < mysongs.size() - 1 && shuffle) {
+//                    curPosition++;
+//                    initPlayer(curPosition);
+
+                    initPlayer(getShuffle(mysongs.size() - 1));
+                } else if (curPosition < mysongs.size() - 1 && !shuffle){
                     curPosition++;
+//                    curPosition = 0;
+
                     initPlayer(curPosition);
                 } else {
                     curPosition = 0;
+
                     initPlayer(curPosition);
                 }
                 //do something when the song is finished playing
@@ -360,6 +354,7 @@ public class PlayerActivity extends AppCompatActivity {
             btnplay.setBackgroundResource(R.drawable.ic_pause);
         }
     }
+
 
     private int getShuffle(int i) {
         Random random = new Random();
