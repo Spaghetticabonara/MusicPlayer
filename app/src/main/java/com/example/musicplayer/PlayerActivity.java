@@ -240,18 +240,14 @@ public class PlayerActivity extends AppCompatActivity {
                 int curPosition = position;
 
                 if (curPosition < mysongs.size() - 1 && shuffle) {
-//                    curPosition++;
-//                    initPlayer(curPosition);
-
                     initPlayer(getShuffle(mysongs.size() - 1));
+
                 } else if (curPosition < mysongs.size() - 1 && !shuffle){
                     curPosition++;
-//                    curPosition = 0;
-
                     initPlayer(curPosition);
+
                 } else {
                     curPosition = 0;
-
                     initPlayer(curPosition);
                 }
                 //do something when the song is finished playing
