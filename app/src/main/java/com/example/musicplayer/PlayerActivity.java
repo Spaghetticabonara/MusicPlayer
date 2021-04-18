@@ -37,6 +37,7 @@ import android.widget.Toolbar;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Random;
 
 public class PlayerActivity extends AppCompatActivity {
 
@@ -147,8 +148,10 @@ public class PlayerActivity extends AppCompatActivity {
         btnnext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (position < mysongs.size() - 1) {
+                if (position < mysongs.size() - 1 && shuffle) {
+                    position = getShuffle(mysongs.size() - 1);
                     position++;
+
                 } else {
                     position = 0;
 
@@ -161,8 +164,9 @@ public class PlayerActivity extends AppCompatActivity {
         btnprev.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (position <= 0) {
-                    position = mysongs.size() - 1;
+                if (position <= 0 && shuffle) {
+                    position = getShuffle(mysongs.size() - 1);
+//                    position = mysongs.size() - 1;
                 } else {
                     position--;
 
@@ -188,7 +192,21 @@ public class PlayerActivity extends AppCompatActivity {
             }
         });
 
+        //------------shuffle btn--------------------
+        btnshuffle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                shuffle = !shuffle;
+                if (shuffle){
+                    btnshuffle.setImageResource(R.drawable.shuffle_click);
+                }
+                else {
+                    btnshuffle.setImageResource(R.drawable.shuffle);
+                }
+            }
+        });
     }
+
 
     private void initPlayer(int position) {
         if (mediaPlayer != null && mediaPlayer.isPlaying()){
@@ -231,7 +249,7 @@ public class PlayerActivity extends AppCompatActivity {
 
                 int curPosition = position;
 
-                if (curPosition < mysongs.size() - 1) {
+                if (curPosition < mysongs.size() - 1 && repeat) {
                     curPosition++;
                     initPlayer(curPosition);
                 } else {
@@ -337,6 +355,11 @@ public class PlayerActivity extends AppCompatActivity {
             mediaPlayer.start();
             btnplay.setBackgroundResource(R.drawable.ic_pause);
         }
+    }
+
+    private int getShuffle(int i) {
+        Random random = new Random();
+        return random.nextInt(i + 1);
     }
 
 }
