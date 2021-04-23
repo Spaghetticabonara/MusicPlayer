@@ -82,6 +82,18 @@ public class PlayerActivity extends AppCompatActivity {
             mediaPlayer.release();
         }
 
+        //get songs from phone
+        Intent i = getIntent();
+        Bundle bundle = i.getExtras();
+
+        mysongs = (ArrayList) bundle.getParcelableArrayList("songs");
+//        String songName = i.getStringExtra("songname");
+        position = bundle.getInt("pos", 0);
+
+        initPlayer(position);
+
+
+
         //set volume bar
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
@@ -112,15 +124,6 @@ public class PlayerActivity extends AppCompatActivity {
         });
 
 
-        //get songs from phone
-        Intent i = getIntent();
-        Bundle bundle = i.getExtras();
-
-        mysongs = (ArrayList) bundle.getParcelableArrayList("songs");
-//        String songName = i.getStringExtra("songname");
-        position = bundle.getInt("pos", 0);
-
-        initPlayer(position);
 
         //---------play btn-------------------
         btnplay.setOnClickListener(new View.OnClickListener() {
